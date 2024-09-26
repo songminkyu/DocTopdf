@@ -80,10 +80,10 @@ namespace DocToPdf.ViewModel
                     bool IsHwpToPdfConverterExsist = ConvHncToDocService.IsHwpToPdfConverterExsist();
                     bool IsRegCheckerModule        = ConvHncToDocService.ReadRegistryFilePathCheckerModule();
 
-                    if (IsHnCInstalled == true &&  // 한글이 설치 여부 확인
-                        IsRegCheckerModule == true &&  // 체커 모듈이 등록 되어 있는지 확인
-                        IsExsistsExportHWPDir == true &&  // Export 된곳에 HWP 폴더가 존재 하는지 확인
-                        IsHwpToPdfConverterExsist == true)   // 바이러스 백신으로부터 제거가 될수 있는 요소로 모듈이 존재 하는지 체크
+                    if (IsHnCInstalled            == true &&  // 한글이 설치 여부 확인
+                        IsRegCheckerModule        == true &&  // 체커 모듈이 등록 되어 있는지 확인
+                        IsExsistsExportHWPDir     == true &&  // Export 된곳에 HWP 폴더가 존재 하는지 확인
+                        IsHwpToPdfConverterExsist == true)    // 바이러스 백신으로부터 제거가 될수 있는 요소로 모듈이 존재 하는지 체크
                     {
                         var TokenSource = new CancellationTokenSource();
                         CancellationToken Token = TokenSource.Token;
@@ -91,12 +91,12 @@ namespace DocToPdf.ViewModel
                         _ = Task.Run(async () =>
                         {
                             List<string> titles = new List<string>()
-                                        {
-                                            "한글",
-                                            "폴더 찾아보기",
-                                            "스크립트 실행",
-                                            "패키지 내용 열기"
-                                        };
+                            {
+                                "한글",
+                                "폴더 찾아보기",
+                                "스크립트 실행",
+                                "패키지 내용 열기"
+                            };
                             string? ProductName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name!;
 
                             bool IsWindowForeground = false;
