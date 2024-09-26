@@ -592,7 +592,7 @@ namespace DocToPdf.Services
                         ReportProgress.ConvertType = ConvertType;
 
                         string? ExportHwpPath = Path.Combine(RootPath, ConvertType);
-                        string? HwpToPdffile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "runtimes", "FD_HWPSecurity", "hwp_to_pdf.exe");
+                        string? HwpToPdffile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hwp_to_pdf.exe");
 
                         if (!Directory.Exists(ExportHwpPath)) continue;
 
@@ -987,7 +987,7 @@ namespace DocToPdf.Services
         {
             bool IsHwpToPdfConverterExsist = false;
 
-            string HwpToPdfConverter = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "runtimes", "FD_HWPSecurity", "hwp_to_pdf.exe");
+            string HwpToPdfConverter = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hwp_to_pdf.exe");
             if (File.Exists(HwpToPdfConverter) == true)
             {
                 IsHwpToPdfConverterExsist =  true;

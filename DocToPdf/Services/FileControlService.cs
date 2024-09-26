@@ -69,6 +69,20 @@ namespace DocToPdf.Services
                     
                 }
             }
-        }        
+        }
+        public static bool OpenDocumentProcesses()
+        {
+            string[] ProcessNames = new string[] { "POWERPNT", "HWP" };
+
+            foreach (string ProcessName in ProcessNames)
+            {
+                Process[] PowerPointProcesses = Process.GetProcessesByName(ProcessName);
+                if (PowerPointProcesses.Length > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

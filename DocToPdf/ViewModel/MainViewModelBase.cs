@@ -6,8 +6,8 @@ namespace DocToPdf.ViewModel
     public class MainViewModelBase : BindableBase
     {
 
-        private IRelayCommand<object>? _UserControlLoadedCommand { get; set; }
-        public IRelayCommand<object>? UserControlLoadedCommand
+        private IAsyncRelayCommand<object>? _UserControlLoadedCommand { get; set; }
+        public IAsyncRelayCommand<object>? UserControlLoadedCommand
         {
             get { return _UserControlLoadedCommand; }
             set
