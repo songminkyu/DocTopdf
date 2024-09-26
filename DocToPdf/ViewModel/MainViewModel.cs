@@ -1,4 +1,5 @@
-﻿using DocToPdf.Services;
+﻿using CommunityToolkit.Mvvm.Input;
+using DocToPdf.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace DocToPdf.ViewModel
         public MainViewModel()
         {
             LoggingService.LoggingInit();
-
+            UserControlLoadedCommand = new RelayCommand<object>(UserControlLoadedCommandExe);
 
             /*
              알림 팝업창 추가할때 아래내용 사용 예정
@@ -26,6 +27,11 @@ namespace DocToPdf.ViewModel
              원활한 문서 변환을 위해 작성 중인 문서를 "저장" 또는 "닫기"를 진행 한 후 "확인" 버튼을 클릭 하여, 
              문서 변환을 진행 하십시오.
              */
+        }
+
+        private void UserControlLoadedCommandExe(object? obj)
+        {
+            var r = 1;          
         }
     }
 }

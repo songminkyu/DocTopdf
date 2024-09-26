@@ -5,11 +5,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DocToPdf"
         xmlns:viewmodel="clr-namespace:DocToPdf.ViewModel"
+        xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.DataContext>
         <viewmodel:MainViewModel/>
     </Window.DataContext>
+
+    <b:Interaction.Triggers>
+        <b:EventTrigger
+			EventName="Loaded">
+            <b:InvokeCommandAction
+				PassEventArgsToCommand="True"
+				Command="{Binding UserControlLoadedCommand}" />
+        </b:EventTrigger>
+    </b:Interaction.Triggers>
+        
     <Grid>
         
     </Grid>
