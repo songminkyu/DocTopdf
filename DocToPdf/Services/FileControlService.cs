@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 
 namespace DocToPdf.Services
 {
@@ -41,5 +42,33 @@ namespace DocToPdf.Services
 
             return true;
         }
+        public static void DocumentProcessKill()
+        {
+            string[] processNames = new string[] { "hwp_to_pdf.exe", "HWP.exe", "HwpConverter.exe", "POWERPNT.exe" };
+
+            foreach (var processName in processNames)
+            {
+                try
+                {
+                    Process killProcess = new Process();
+                    ProcessStartInfo taskkillStartInfo = new ProcessStartInfo
+                    {
+                        FileName = "taskkill",
+                        Arguments = $"/F /IM {processName}",
+                        Verb = "runas",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    killProcess.StartInfo = taskkillStartInfo;
+                    killProcess.Start();
+                    killProcess.WaitForExit();
+                }
+                catch (Exception ex)
+                {
+                    
+                }
+            }
+        }        
     }
 }
