@@ -25,8 +25,8 @@ namespace DocToPdf.ViewModel
         }
         private async Task DocToPdfConvert()
         {
-            ConvMSOfficeToDocService.SetRootPath("");
-            ConvHncToDocService.SetRootPath("");
+            ConvMSOfficeToDocService.SetRootPath("c:\\");
+            ConvHncToDocService.SetRootPath("c:\\");
 
             Progress<ConvertReport> ConvertProgressReport = new Progress<ConvertReport>(async value => {
                 await DispatcherService.BeginInvokeBackground(new Action(async delegate

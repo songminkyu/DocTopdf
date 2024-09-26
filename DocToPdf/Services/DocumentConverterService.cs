@@ -357,7 +357,7 @@ namespace DocToPdf.Services
 
                     foreach (var ConvertType in ConvertTypes)
                     {
-                        string? ExportPPTPath = Path.Combine(RootPath!, "$Export", "Document", ConvertType);
+                        string? ExportPPTPath = Path.Combine(RootPath!, ConvertType);
 
                         if (!Directory.Exists(ExportPPTPath)) continue;
 
