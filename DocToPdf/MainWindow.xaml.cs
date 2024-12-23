@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using DocToPdf.ViewModel;
+using log4net;
 using log4net.Config;
 using System.Text;
 using System.Windows;
@@ -22,7 +23,8 @@ namespace DocToPdf
     {        
         public MainWindow()
         {            
-            InitializeComponent();                        
+            InitializeComponent();
+            DataContext = new DocToConvViewModel();
         }
     }
 }

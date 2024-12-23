@@ -5,23 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DocToPdf"
         xmlns:viewmodel="clr-namespace:DocToPdf.ViewModel"
+        xmlns:viewers="clr-namespace:DocToPdf.View"   
         xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Window.DataContext>
-        <viewmodel:DocToConvViewModel/>
-    </Window.DataContext>
 
-    <b:Interaction.Triggers>
-        <b:EventTrigger
-			EventName="Loaded">
-            <b:InvokeCommandAction
-				PassEventArgsToCommand="True"
-				Command="{Binding UserControlLoadedCommand}" />
-        </b:EventTrigger>
-    </b:Interaction.Triggers>
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type viewmodel:DocToConvViewModel}">
+            <viewers:DocToConvView DataContext="{Binding}"/>
+        </DataTemplate>
         
+    </Window.Resources>
+
     <Grid>
-        
+        <ContentControl x:Name="MainContent"  Content="{Binding}" Margin="0,0,0,0" Focusable="False"/>
     </Grid>
 </Window>
