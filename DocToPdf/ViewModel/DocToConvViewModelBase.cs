@@ -3,7 +3,7 @@ using DocToPdf.Services;
 
 namespace DocToPdf.ViewModel
 {
-    public class MainViewModelBase : BindableBase
+    public class DocToConvViewModelBase : BindableBase
     {
 
         private IAsyncRelayCommand<object>? _UserControlLoadedCommand { get; set; }

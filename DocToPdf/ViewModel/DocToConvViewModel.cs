@@ -10,9 +10,9 @@ using System.Windows;
 
 namespace DocToPdf.ViewModel
 {
-    public class MainViewModel : MainViewModelBase
+    public class DocToConvViewModel : DocToConvViewModelBase
     {
-        public MainViewModel()
+        public DocToConvViewModel()
         {
             LoggingService.LoggingInit();
             UserControlLoadedCommand = new AsyncRelayCommand<object>(UserControlLoadedCommandExe); 
