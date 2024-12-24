@@ -1,13 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using DocToPdf.Model;
 using DocToPdf.Services;
+using System.Collections.ObjectModel;
 
 namespace DocToPdf.ViewModel
 {
     public class DocToConvViewModelBase : BindableBase
     {
 
-        private IAsyncRelayCommand<object>? _UserControlLoadedCommand { get; set; }
-        public IAsyncRelayCommand<object>? UserControlLoadedCommand
+        private IRelayCommand<object>? _UserControlLoadedCommand { get; set; }
+        public IRelayCommand<object>? UserControlLoadedCommand
         {
             get { return _UserControlLoadedCommand; }
             set
@@ -16,28 +18,46 @@ namespace DocToPdf.ViewModel
                 _UserControlLoadedCommand = value;
             }
         }
-        private IRelayCommand<object>? _TargetPathCommand { get; set; }
-        public IRelayCommand<object>? TargetPathCommand
+        private IRelayCommand<object>? _targetPathCommand { get; set; }
+        public IRelayCommand<object>? targetPathCommand
         {
-            get { return _TargetPathCommand; }
+            get { return _targetPathCommand; }
             set
             {
-                if (_TargetPathCommand == value) return;
-                _TargetPathCommand = value;
+                if (_targetPathCommand == value) return;
+                _targetPathCommand = value;
             }
         }
-        private IRelayCommand<object>? _SavedPathCommand { get; set; }
-        public IRelayCommand<object>? SavedPathCommand
+        private IRelayCommand<object>? _savedPathCommand { get; set; }
+        public IRelayCommand<object>? savedPathCommand
         {
-            get { return _SavedPathCommand; }
+            get { return _savedPathCommand; }
             set
             {
-                if (_SavedPathCommand == value) return;
-                _SavedPathCommand = value;
+                if (_savedPathCommand == value) return;
+                _savedPathCommand = value;
             }
         }
-
-
+        private IAsyncRelayCommand<object>? _runCommand { get; set; }
+        public IAsyncRelayCommand<object>? runCommand
+        {
+            get { return _runCommand; }
+            set
+            {
+                if (_runCommand == value) return;
+                _runCommand = value;
+            }
+        }
+        private IRelayCommand<object>? _cancelCommand { get; set; }
+        public IRelayCommand<object>? cancelCommand
+        {
+            get { return _cancelCommand; }
+            set
+            {
+                if (_cancelCommand == value) return;
+                _cancelCommand = value;
+            }
+        }
         private string? _targetPath { get; set; }
         public string? targetPath
         {
@@ -61,6 +81,18 @@ namespace DocToPdf.ViewModel
                 _savedPath = value;
 
                 OnPropertyChanged(nameof(savedPath));
+            }
+        }
+        private ObservableCollection<DocConverter>? _convLogs { get; set; }
+        public ObservableCollection<DocConverter>? convLogs
+        {
+            get { return _convLogs; }
+            set
+            {
+                if (_convLogs == value) return;
+                _convLogs = value;
+
+                OnPropertyChanged(nameof(convLogs));
             }
         }
     }

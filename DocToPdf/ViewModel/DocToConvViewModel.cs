@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Collections.ObjectModel;
 
 namespace DocToPdf.ViewModel
 {
@@ -16,29 +17,57 @@ namespace DocToPdf.ViewModel
         public DocToConvViewModel()
         {
             LoggingService.LoggingInit();
-            UserControlLoadedCommand = new AsyncRelayCommand<object>(UserControlLoadedCommandExe);
-            TargetPathCommand = new RelayCommand<object>(TargetPathCommandExe);
-            SavedPathCommand = new RelayCommand<object>(SavedPathCommandExe);
+            UserControlLoadedCommand = new RelayCommand<object>(UserControlLoadedCommandExe);
+            targetPathCommand = new RelayCommand<object>(TargetPathCommandExe);
+            savedPathCommand = new RelayCommand<object>(SavedPathCommandExe);
+            runCommand = new AsyncRelayCommand<object>(RunCommandExe);
+            cancelCommand = new RelayCommand<object>(CancelCommandExe);
             savedPath = string.Empty;
             targetPath = string.Empty;
+            convLogs = new ObservableCollection<Model.DocConverter>();
         }
-
-        private async Task UserControlLoadedCommandExe(object? obj)
+        private void UserControlLoadedCommandExe(object? obj)
+        {
+            if(convLogs != null)
+                convLogs.Add(new Model.DocConverter() { index = 0, description = "123123" });
+        }
+        
+        private void TargetPathCommandExe(object? obj)
+        {
+            string targetInitPath = KnownFoldersService.GetPath(KnownFolder.Documents);
+            targetPath = OpenFileDlg(targetInitPath);
+            if(!string.IsNullOrEmpty(targetPath))
+            {
+                ConvMSOfficeToDocService.SetRootPath(targetPath);
+                ConvHncToDocService.SetRootPath(targetPath);
+            }
+        }
+        private void SavedPathCommandExe(object? obj)
+        {
+            string savedInitPath = KnownFoldersService.GetPath(KnownFolder.Documents);
+            savedPath = OpenFileDlg(savedInitPath);
+        }
+        private async Task RunCommandExe(object? arg)
         {
             await Task.Run(DocToPdfConvert);
         }
+        private void CancelCommandExe(object? obj)
+        {
+
+        }
         private async Task DocToPdfConvert()
         {
-            ConvMSOfficeToDocService.SetRootPath("c:\\");
-            ConvHncToDocService.SetRootPath("c:\\");
-
+      
             Progress<ConvertReport> ConvertProgressReport = new Progress<ConvertReport>(async value => {
                 await DispatcherService.BeginInvokeBackground(new Action(async delegate
                 {
                     await Task.Delay(0);
 
                     var r = $"Converting {value.ConvertType} To PDF...( {value.CurrentCount} / {value.TotalCount} )";
-                    
+
+                    if (convLogs != null)
+                        convLogs.Add(new Model.DocConverter() { index = value.CurrentCount, description = "123123" });
+
                     if (value.CurrentCount == value.TotalCount)
                     {
                         await Task.Delay(100);
@@ -46,24 +75,24 @@ namespace DocToPdf.ViewModel
 
                 }));
             });
-            bool IsExsistsExportHWPDir         = ConvHncToDocService.IsExsistsHWPDir();
-            bool IsExsistsExportPowerPointDir  = ConvMSOfficeToDocService.IsExsistsPowerPointDir();
+            bool IsExsistsExportHWPDir = ConvHncToDocService.IsExsistsHWPDir();
+            bool IsExsistsExportPowerPointDir = ConvMSOfficeToDocService.IsExsistsPowerPointDir();
             int NotExsistsPowerPointToPDFCount = ConvMSOfficeToDocService.CheckedNotExsistsPowerPointToPDFCount();
-            int NotExsistsHWPToPDFCount        = ConvHncToDocService.CheckedNotExsistsHWPToPDFCount();
+            int NotExsistsHWPToPDFCount = ConvHncToDocService.CheckedNotExsistsHWPToPDFCount();
 
             if ((IsExsistsExportPowerPointDir == true && NotExsistsPowerPointToPDFCount > 0) || (IsExsistsExportHWPDir == true && NotExsistsHWPToPDFCount > 0))
             {
                 MessageBoxResult result = MessageBoxResult.OK;
                 while (FileControlService.OpenDocumentProcesses() == true)
                 {
-                    result =  MessageBox.Show(                  
+                    result = MessageBox.Show(
                                         "문서 변환 목록이 발견 되었으며, 한글(HWP) 및 PowerPoint(MS Office) 문서가 열려 있습니다.\n" +
                                         "원활한 문서 변환을 위해 작성 중인 문서를 '저장' 또는 '닫기'를 진행 한 후 '확인' 버튼을 클릭 하여,\n" +
                                         "문서 변환을 진행 하십시오.",
                                         "문서 변환 알림",
                                         MessageBoxButton.OKCancel,
                                         MessageBoxImage.Information);
-                 
+
                     if (result == MessageBoxResult.Cancel)
                     {
                         break;
@@ -75,18 +104,18 @@ namespace DocToPdf.ViewModel
                     bool IsPowerPointInstalled = ConvMSOfficeToDocService.IsPowerPointInstalled_V16();
 
                     if (IsPowerPointInstalled == true && IsExsistsExportPowerPointDir == true)
-                    {                        
+                    {
                         await ConvMSOfficeToDocService.ConvertPowerPointToPDFAll(ConvertProgressReport!).ConfigureAwait(false);
                     }
 
 
-                    bool IsHnCInstalled            = ConvHncToDocService.IsHnCInstalled();
+                    bool IsHnCInstalled = ConvHncToDocService.IsHnCInstalled();
                     bool IsHwpToPdfConverterExsist = ConvHncToDocService.IsHwpToPdfConverterExsist();
-                    bool IsRegCheckerModule        = ConvHncToDocService.ReadRegistryFilePathCheckerModule();
+                    bool IsRegCheckerModule = ConvHncToDocService.ReadRegistryFilePathCheckerModule();
 
-                    if (IsHnCInstalled            == true &&  // 한글이 설치 여부 확인
-                        IsRegCheckerModule        == true &&  // 체커 모듈이 등록 되어 있는지 확인
-                        IsExsistsExportHWPDir     == true &&  // Export 된곳에 HWP 폴더가 존재 하는지 확인
+                    if (IsHnCInstalled == true &&  // 한글이 설치 여부 확인
+                        IsRegCheckerModule == true &&  // 체커 모듈이 등록 되어 있는지 확인
+                        IsExsistsExportHWPDir == true &&  // Export 된곳에 HWP 폴더가 존재 하는지 확인
                         IsHwpToPdfConverterExsist == true)    // 바이러스 백신으로부터 제거가 될수 있는 요소로 모듈이 존재 하는지 체크
                     {
                         var TokenSource = new CancellationTokenSource();
@@ -144,7 +173,7 @@ namespace DocToPdf.ViewModel
                             }
 
                         }, Token);
-                        
+
 
                         await ConvHncToDocService.ConvertHWPToPDFAll(ConvertProgressReport);
 
@@ -157,19 +186,9 @@ namespace DocToPdf.ViewModel
                     }
                 }
                 else
-                {                    
+                {
                 }
             }
-        }
-        private void TargetPathCommandExe(object? obj)
-        {
-            string targetInitPath = KnownFoldersService.GetPath(KnownFolder.Documents);
-            targetPath = OpenFileDlg(targetInitPath);
-        }
-        private void SavedPathCommandExe(object? obj)
-        {
-            string savedInitPath = KnownFoldersService.GetPath(KnownFolder.Documents);
-            savedPath = OpenFileDlg(savedInitPath);
         }
         private string? OpenFileDlg(string InitialDirectory)
         {

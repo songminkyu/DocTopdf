@@ -19,7 +19,7 @@
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Margin="15" VerticalAlignment="Top">
+        <Grid Grid.Row="0" Margin="20" VerticalAlignment="Top">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition Width="Auto"/>
@@ -34,15 +34,33 @@
             <Border Grid.Row="1"  BorderBrush="Black" BorderThickness="1,1,0,1" Grid.Column="0" >
                 <TextBlock Padding="5,2,0,0" Text="{Binding targetPath,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
             </Border>
-            <Button Grid.Row="1" Content="..." Grid.Column="1" BorderBrush="Black" Width="24" Height="24"  Command="{Binding TargetPathCommand}"/>
+            <Button Grid.Row="1" Content="..." Grid.Column="1" BorderBrush="Black" Width="24" Height="24"  Command="{Binding targetPathCommand}"/>
             
             <TextBlock Grid.Row="2" Text="Save Path" Margin="0,10,0,5"/>
             <Border Grid.Row="3"  BorderBrush="Black" BorderThickness="1,1,0,1" Grid.Column="0" >
                 <TextBlock Padding="5,2,0,0" Text="{Binding savedPath,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
             </Border>
-            <Button Grid.Row="3" Content="..." Grid.Column="1" BorderBrush="Black" Width="24" Height="24"  Command="{Binding SavedPathCommand}"/>
+            <Button Grid.Row="3" Content="..." Grid.Column="1" BorderBrush="Black" Width="24" Height="24"  Command="{Binding savedPathCommand}"/>
 
         </Grid>
-        
+        <DataGrid ItemsSource="{Binding convLogs, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"
+                  CanUserAddRows="False" IsReadOnly="True"
+                  AutoGenerateColumns="False"
+            Grid.Row="1" Margin="20" Background="White">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="index" Width="60" Binding="{Binding index}"/>
+                <DataGridTextColumn Header="description" Binding="{Binding description}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Grid Grid.Row="2" Margin="20">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Height="26" Width="100" Margin="0,0,15,0"
+                        Content="Run" Command="{Binding runCommand}"/>
+                <Button Height="26" Width="100"
+                        Content="Cancel" Command="{Binding cancelCommand}"/>
+            </StackPanel>
+        </Grid>
+
     </Grid>
 </UserControl>

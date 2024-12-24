@@ -61,6 +61,7 @@ namespace DocToPdf.Services
         }
 
         public string ConvertType { get; set; } = string.Empty;
+        public string ConvertTarget { get; set; } = string.Empty;
         public int CurrentCount   { get; set; } = 1;
         public int TotalCount     { get; set; } = 0;        
     }
@@ -386,6 +387,7 @@ namespace DocToPdf.Services
                             }
 
                             ConvertReport.TotalCount = PPTFiles.Count();
+                            ConvertReport.ConvertTarget = PPTFile;
                             ConvertReport.ConvertType = ConvertType;
                             ConvertProgressReport.Report(ConvertReport);
                             ConvertReport.CurrentCount++;
