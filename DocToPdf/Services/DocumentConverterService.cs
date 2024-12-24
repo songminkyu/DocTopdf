@@ -568,7 +568,7 @@ namespace DocToPdf.Services
                         ReportProgress.ConvertType = ConvertType;
 
                         string? ExportHwpPath = Path.Combine(RootPath, ConvertType);
-                        string? HwpToPdffile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hncTopdf.exe");
+                        string? HwpToPdffile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hnc_to_pdf.exe");
 
                         if (!Directory.Exists(ExportHwpPath)) continue;
 
