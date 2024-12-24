@@ -46,6 +46,11 @@ namespace DocToPdf.ViewModel
         {
             string savedInitPath = KnownFoldersService.GetPath(KnownFolder.Documents);
             savedPath = OpenFileDlg(savedInitPath);
+            if (!string.IsNullOrEmpty(savedPath))
+            {
+                ConvMSOfficeToDocService.SetSavePath(savedPath);
+                ConvHncToDocService.SetSavePath(savedPath);
+            }
         }
         private async Task RunCommandExe(object? arg)
         {

@@ -8,9 +8,9 @@
 * pip install requirements.txt
   
 #### 실행파일 한개 출력 (Pyinstaller 설치 필요)
-* Pyinstaller --clean --onefile --windowed hwp_to_pdf.py
-  Pyinstaller --clean --onefile --noconsole hwp_to_pdf.py
-  Pyinstaller --clean --onefile -w hwp_to_pdf.py
+* Pyinstaller --clean --onefile --windowed hnc_to_pdf.py
+  Pyinstaller --clean --onefile --noconsole hnc_to_pdf.py
+  Pyinstaller --clean --onefile -w hnc_to_pdf.py
 
 #### 실행 방법
 * hwp_to_pdf.exe -hp <한글 저장 폴더 경로> -pn <제품 이름(FMF,FML,FF)>

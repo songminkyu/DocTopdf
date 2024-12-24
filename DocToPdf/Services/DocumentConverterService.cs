@@ -230,6 +230,8 @@ namespace DocToPdf.Services
     {
         private static string RootPath = string.Empty;
         private static string Language = string.Empty;
+        private static string SavePath = string.Empty;
+
         private static void SetLanguage(string language) 
         {
             Language = language;
@@ -237,6 +239,10 @@ namespace DocToPdf.Services
         public static void SetRootPath(string path)
         {
             RootPath = path;
+        }
+        public static void SetSavePath(string path)
+        {
+            SavePath = path;
         }
         public static XpsDocument ConvertPowerPointToXps(string PptFilename, string XpsFilename)
         {
@@ -285,53 +291,27 @@ namespace DocToPdf.Services
             }
         }     
         public static string? ConvertPowerPointToPDF(string ConvertType, string OrgFilePath, bool IsConvertPDF = true)
-        {
-            int InsertOffset = 0; //\\Temp 폴더 삽입 위치
+        {         
             ContentType ConversionType;
-            
-            if (OrgFilePath.Contains("\\AppData\\"))
-            {                 
-                if (ConvertType == "PPTX" || ConvertType == "PPT")
-                {
-                    InsertOffset = 5;
-                    ConversionType = ContentType.Temp;
-                }
-                else
-                {
-                    //PPXS 타입
-                    return string.Empty;
-                }
+
+            if (ConvertType == "PPTX")
+            {             
+                ConversionType = ContentType.PPTX;
+            }
+            else if (ConvertType == "PPT")
+            {          
+                ConversionType = ContentType.PPT;
             }
             else
             {
-                if (ConvertType == "PPTX")
-                {
-                    InsertOffset = 5;
-                    ConversionType = ContentType.PPTX;
-                }
-                else if (ConvertType == "PPT")
-                {
-                    InsertOffset = 4;
-                    ConversionType = ContentType.PPT;
-                }
-                else
-                {
-                    //PPXS 타입
-                    return string.Empty;
-                }
+                //PPXS 타입
+                return string.Empty;
             }
 
-            string? MakePDFSFilePath = OrgFilePath.Insert(OrgFilePath.LastIndexOf($"\\{ConversionType}\\") + InsertOffset, "\\PDFS");                        
-            string? MakePDFSDir      = Path.GetDirectoryName(MakePDFSFilePath);
             string? ConvPdfFileName  = Path.ChangeExtension(OrgFilePath, ".pdf");
-            string? OnlyPdfFileName  = Path.GetFileName(ConvPdfFileName);
-           
-            if (!Directory.Exists(MakePDFSDir))
-            {
-                Directory.CreateDirectory(MakePDFSDir!);
-            }
-
-            string? PdfFilePath = Path.Combine(MakePDFSDir!, OnlyPdfFileName);
+            string? OnlyPdfFileName  = Path.GetFileName(ConvPdfFileName);           
+        
+            string? PdfFilePath = Path.Combine(SavePath!, OnlyPdfFileName);
 
             if (!File.Exists(PdfFilePath) && IsConvertPDF == true)
             {
@@ -372,18 +352,7 @@ namespace DocToPdf.Services
 
                             if (!File.Exists(ExportPdfFilePath))
                             {
-                                string ConvertErrorReport;
-
-                                if (Language == "Korean")
-                                    ConvertErrorReport = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ConvertErrorReport", "NotPreview_KR.pdf");
-                                else
-                                    ConvertErrorReport = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ConvertErrorReport", "NotPreview_EN.pdf");
-
-                                bool IsConvert = FileControlService.FileCopy(ConvertErrorReport, ExportPdfFilePath!);
-                                if (IsConvert == false)
-                                {
-                                    LoggingService.Logger("PPT/PPTX to PDF Not Convert : " + ExportPdfFilePath, LogLevel.Warn);
-                                }
+                                LoggingService.Logger("PPT/PPTX to PDF Not Convert : " + ExportPdfFilePath, LogLevel.Warn);
                             }
 
                             ConvertReport.TotalCount = PPTFiles.Count();
@@ -551,13 +520,14 @@ namespace DocToPdf.Services
         enum WN_Message
         {
             ToConvertPdfStartCount   = 2024,
-            ToConvertPdfCurrentCount = 2025,
+            ToConvertPdfMessage = 2025,
         }
         public static string LoadPath = string.Empty;
         private static ConvertReport ReportProgress = new ConvertReport();
         private static IProgress<ConvertReport> ?IConvertProgressReport;
         private static PresentationSource source;
         private static string RootPath = string.Empty;
+        private static string SavePath = string.Empty;
         private static string Language = string.Empty;
         private static void SetLanguage(string language)
         {
@@ -566,6 +536,10 @@ namespace DocToPdf.Services
         public static void SetRootPath(string path)
         {
             RootPath = path;
+        }
+        public static void SetSavePath(string path)
+        {
+            SavePath = path;
         }
         public static void SetParentHandle()
         {
@@ -594,14 +568,14 @@ namespace DocToPdf.Services
                         ReportProgress.ConvertType = ConvertType;
 
                         string? ExportHwpPath = Path.Combine(RootPath, ConvertType);
-                        string? HwpToPdffile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hwp_to_pdf.exe");
+                        string? HwpToPdffile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hncTopdf.exe");
 
                         if (!Directory.Exists(ExportHwpPath)) continue;
 
                         ProcessStartInfo psi = new ProcessStartInfo
                         {
                             FileName = "\"" + HwpToPdffile + "\"",
-                            Arguments = $"-hrp \"{ExportHwpPath}\" -phw \"{hWnd_source.Handle}\"",
+                            Arguments = $"-hrp \"{ExportHwpPath}\" -ps \"{SavePath}\" -phw \"{hWnd_source.Handle}\"",
                             Verb = "runas",
                             UseShellExecute = false,
                             CreateNoWindow = true,
@@ -657,9 +631,10 @@ namespace DocToPdf.Services
                 ReportProgress.CurrentCount = 0;
                 ReportProgress.TotalCount   = wParam.ToInt32();                
             }
-            else if (msg == (int)WN_Message.ToConvertPdfCurrentCount)
+            else if (msg == (int)WN_Message.ToConvertPdfMessage)
             {
                 ReportProgress.CurrentCount = wParam.ToInt32();
+                ReportProgress.ConvertTarget = lParam.ToString();
             }
 
             if(IConvertProgressReport != null)

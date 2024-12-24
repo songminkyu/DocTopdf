@@ -1,11 +1,9 @@
 import os  # .path.join(), .listdir(), .chdir(), .getcwd() 등 사용
-import sys
 import win32com.client as win32  # 한/글 열 수 있는 모듈
 import win32con
 import win32gui  # 창 숨기기 위한 모듈
 import win32api
 import argparse
-import shutil
 from PyPDF2 import PdfReader
 
 def HWpSearch(dirname, hwpfiles):
@@ -23,49 +21,33 @@ def HWpSearch(dirname, hwpfiles):
         pass
 
 
-def replace_hwp_to_pdf_export_path(org_hwpfile_path):
-
+def replace_hwp_to_pdf_export_path(pdf_save_path,org_hwpfile_path):
     org_hwpfile_path_lower = org_hwpfile_path.casefold()
     hwp_ext = os.path.splitext(org_hwpfile_path_lower)[-1]
-    if(hwp_ext.casefold() == ".hwpx"):
-        index = org_hwpfile_path_lower.lower().rfind('\\hwpx') + 5
-    else:
-        index = org_hwpfile_path_lower.lower().rfind('\\hwp') + 4
-
-    make_pdfs_filepath = org_hwpfile_path_lower[:index] + '\\PDFS' + org_hwpfile_path_lower[index:]
-    make_pdfs_dir = os.path.dirname(make_pdfs_filepath)
-
-    if not os.path.exists(make_pdfs_dir):
-        os.makedirs(make_pdfs_dir)
-
     org_hwpfile_path_lower = org_hwpfile_path_lower.replace(hwp_ext, '.pdf')
     conv_pdf_filename = os.path.basename(org_hwpfile_path_lower)
-    pdfs_save_filepath = os.path.join(make_pdfs_dir, conv_pdf_filename)
+    pdfs_save_filepath = os.path.join(pdf_save_path, conv_pdf_filename)
     return pdfs_save_filepath;
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-hrp', '--hwp_root_path', type=str, help=' : Please specify the location of the HWP document',
-                        default="c:\\HWP")
-    parser.add_argument('-l', '--language', type=str, help=': Please set the language.', default="KR")
-    parser.add_argument('-phw','--parenthwnd',type=int,help=': Please set Parent handle.',default=0)
-
+                        default="c:\\Doc\\HWPX")
+    parser.add_argument('-ps', '--pdf_save_path', type=str, help=' : Please specify the location of the PDF document',
+                        default="c:\\Doc\\PDFS")
+    parser.add_argument('-phw','--parenthwnd',type=int,help=' : Please set Parent handle.',default=0)
+    parser.add_argument('-scm','--security_module', type=str, help=' : Please specify the security module',default='FilePathCheckerModule')
     ToConvertPdfStartMessage = win32con.WM_USER + 1000
-    ToConvertPdfCountMessage = win32con.WM_USER + 1001
+    ToConvertPdfMessage = win32con.WM_USER + 1001
 
     arguments = parser.parse_args()
 
     hwp_root_path = arguments.hwp_root_path
-    product = arguments.product
-    language = arguments.language
 
-    security_module = 'FilePathCheckerModule'
+    pdf_save_path = arguments.pdf_save_path
 
-    not_preview_doc_path = ''
-    py_execute_path = os.path.dirname(os.path.abspath(sys.executable))
-    product_root_path = os.path.abspath(os.path.join(py_execute_path, '../../'))
-    not_preview_doc_path = os.path.join(product_root_path, 'ConvertErrorReport', 'NotPreview_KR.pdf')
+    security_module = arguments.security_module
 
     os.chdir(hwp_root_path)  # hwp 파일이 있는 폴더로 이동
     '''
@@ -81,7 +63,7 @@ if __name__ == "__main__":
 
     BASE_DIR = hwp_root_path  # 한/글은 파일 열거나 저장할 때 전체경로를 입력해야 하므로, os.path.join(BASE_DIR, i) 식으로 사용할 것
 
-    PDFS_DIR = BASE_DIR + '/PDFS'
+    PDFS_DIR = pdf_save_path
     if not os.path.exists(PDFS_DIR):
         os.makedirs(PDFS_DIR)
 
@@ -90,8 +72,6 @@ if __name__ == "__main__":
     HWpSearch(hwp_root_path, file_list)
 
     file_list_hwp = [file for file in file_list if file.endswith((".hwp",".HWP",".Hwp",".hwpx",".HWPX",".Hwpx"))]
-
-    print("ToConvertPdfStartCount",0,len(file_list_hwp),sep="|")
 
     if arguments.parenthwnd != 0:
         win32api.SendMessage(arguments.parenthwnd, ToConvertPdfStartMessage, len(file_list_hwp), 0)
@@ -102,7 +82,7 @@ if __name__ == "__main__":
     '''
     ToConvertPdfCount = 1
     for hwpfile in file_list_hwp:  # 현재폴더 안에 있는 모든 파일을
-        replace_hwp2pdf_path = replace_hwp_to_pdf_export_path(hwpfile)
+        replace_hwp2pdf_path = replace_hwp_to_pdf_export_path(pdf_save_path,hwpfile)
         isExists = os.path.isfile(replace_hwp2pdf_path)
         if isExists == False:
             hwp.XHwpWindows.Item(0).Visible = False
@@ -123,12 +103,11 @@ if __name__ == "__main__":
                     os.remove(hwp.HParameterSet.HFileOpenSave.filename)
 
             if isConvertOk == False or isExists == False:
-                shutil.copy(not_preview_doc_path, hwp.HParameterSet.HFileOpenSave.filename)  # 컨버팅이 되지 않은 문서를 대상으로 복사
-
-            print("ToConvertPdfCurrentCount", ToConvertPdfCount, sep="|")
+                # 컨버팅이 되지 않는 문서들 대상으로 다음 문서 변환 시도
+                continue
 
             if arguments.parenthwnd != 0:
-                win32api.SendMessage(arguments.parenthwnd, ToConvertPdfCountMessage, ToConvertPdfCount, 0)
+                win32api.SendMessage(arguments.parenthwnd, ToConvertPdfMessage, ToConvertPdfCount, replace_hwp2pdf_path)
                 ToConvertPdfCount = ToConvertPdfCount + 1
 
     win32gui.ShowWindow(hwnd, 0)  # 다시 숨겼던 한/글 창을 보여주고,

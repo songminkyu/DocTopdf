@@ -1,4 +1,5 @@
 pyinstaller
 pywin32
 pypdf
+pyhwpx
 PyPDF2
