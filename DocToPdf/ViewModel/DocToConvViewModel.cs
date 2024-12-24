@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using DocToPdf.Services;
-using FD.UIControlServices;
+using DocToPdf.UIControlServices;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +16,16 @@ namespace DocToPdf.ViewModel
         public DocToConvViewModel()
         {
             LoggingService.LoggingInit();
-            UserControlLoadedCommand = new AsyncRelayCommand<object>(UserControlLoadedCommandExe); 
+            UserControlLoadedCommand = new AsyncRelayCommand<object>(UserControlLoadedCommandExe);
+            TargetPathCommand = new RelayCommand<object>(TargetPathCommandExe);
+            SavedPathCommand = new RelayCommand<object>(SavedPathCommandExe);
+            savedPath = string.Empty;
+            targetPath = string.Empty;
         }
 
         private async Task UserControlLoadedCommandExe(object? obj)
         {
             await Task.Run(DocToPdfConvert);
-            
         }
         private async Task DocToPdfConvert()
         {
@@ -155,6 +159,31 @@ namespace DocToPdf.ViewModel
                 else
                 {                    
                 }
+            }
+        }
+        private void TargetPathCommandExe(object? obj)
+        {
+            string targetInitPath = KnownFoldersService.GetPath(KnownFolder.Documents);
+            targetPath = OpenFileDlg(targetInitPath);
+        }
+        private void SavedPathCommandExe(object? obj)
+        {
+            string savedInitPath = KnownFoldersService.GetPath(KnownFolder.Documents);
+            savedPath = OpenFileDlg(savedInitPath);
+        }
+        private string? OpenFileDlg(string InitialDirectory)
+        {
+            CommonOpenFileDialog openFileDialog = new CommonOpenFileDialog();
+            openFileDialog.InitialDirectory = InitialDirectory; 
+            openFileDialog.IsFolderPicker = true;
+
+            if (openFileDialog.ShowDialog() == CommonFileDialogResult.Ok)
+            {
+                return openFileDialog.FileName;
+            }
+            else
+            {
+                return string.Empty;
             }
         }
     }

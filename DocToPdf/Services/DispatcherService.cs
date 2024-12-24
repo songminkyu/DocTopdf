@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DocToPdf.Services;
 
-namespace FD.UIControlServices
+namespace DocToPdf.UIControlServices
 {       
     public class DispatcherService
     {

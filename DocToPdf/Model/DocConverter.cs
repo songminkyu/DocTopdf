@@ -8,5 +8,8 @@ namespace DocToPdf.Model
 {
     public class DocConverter
     {
+        public int idx { get; set; }
+        public string? description { get; set; }
+
     }
 }
