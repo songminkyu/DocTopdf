@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Collections.ObjectModel;
+using System.Windows.Interop;
 
 namespace DocToPdf.ViewModel
 {
@@ -27,9 +28,7 @@ namespace DocToPdf.ViewModel
             convLogs = new ObservableCollection<Model.DocConverter>();
         }
         private void UserControlLoadedCommandExe(object? obj)
-        {
-            if(convLogs != null)
-                convLogs.Add(new Model.DocConverter() { index = 0, description = "123123" });
+        {            
         }
         
         private void TargetPathCommandExe(object? obj)
@@ -53,25 +52,22 @@ namespace DocToPdf.ViewModel
             }
         }
         private async Task RunCommandExe(object? arg)
-        {
-            await Task.Run(DocToPdfConvert);
+        {           
+            await Task.Run(DocToPdfConvert);          
         }
         private void CancelCommandExe(object? obj)
         {
 
         }
         private async Task DocToPdfConvert()
-        {
-      
+        {      
             Progress<ConvertReport> ConvertProgressReport = new Progress<ConvertReport>(async value => {
                 await DispatcherService.BeginInvokeBackground(new Action(async delegate
                 {
                     await Task.Delay(0);
-
-                    var r = $"Converting {value.ConvertType} To PDF...( {value.CurrentCount} / {value.TotalCount} )";
-
+                    
                     if (convLogs != null)
-                        convLogs.Add(new Model.DocConverter() { index = value.CurrentCount, description = "123123" });
+                        convLogs.Add(new Model.DocConverter() { index = value.CurrentCount, description = value.ConvertTarget });
 
                     if (value.CurrentCount == value.TotalCount)
                     {
@@ -80,10 +76,11 @@ namespace DocToPdf.ViewModel
 
                 }));
             });
-            bool IsExsistsExportHWPDir = ConvHncToDocService.IsExsistsHWPDir();
-            bool IsExsistsExportPowerPointDir = ConvMSOfficeToDocService.IsExsistsPowerPointDir();
+
+            bool IsExsistsExportHWPDir         = ConvHncToDocService.IsExsistsHWPDir();
+            bool IsExsistsExportPowerPointDir  = ConvMSOfficeToDocService.IsExsistsPowerPointDir();
             int NotExsistsPowerPointToPDFCount = ConvMSOfficeToDocService.CheckedNotExsistsPowerPointToPDFCount();
-            int NotExsistsHWPToPDFCount = ConvHncToDocService.CheckedNotExsistsHWPToPDFCount();
+            int NotExsistsHWPToPDFCount        = ConvHncToDocService.CheckedNotExsistsHWPToPDFCount();
 
             if ((IsExsistsExportPowerPointDir == true && NotExsistsPowerPointToPDFCount > 0) || (IsExsistsExportHWPDir == true && NotExsistsHWPToPDFCount > 0))
             {
@@ -114,15 +111,16 @@ namespace DocToPdf.ViewModel
                     }
 
 
-                    bool IsHnCInstalled = ConvHncToDocService.IsHnCInstalled();
+                    bool IsHnCInstalled            = ConvHncToDocService.IsHnCInstalled();
                     bool IsHwpToPdfConverterExsist = ConvHncToDocService.IsHwpToPdfConverterExsist();
-                    bool IsRegCheckerModule = ConvHncToDocService.ReadRegistryFilePathCheckerModule();
+                    bool IsRegCheckerModule        = ConvHncToDocService.ReadRegistryFilePathCheckerModule();
 
-                    if (IsHnCInstalled == true &&  // 한글이 설치 여부 확인
-                        IsRegCheckerModule == true &&  // 체커 모듈이 등록 되어 있는지 확인
-                        IsExsistsExportHWPDir == true &&  // Export 된곳에 HWP 폴더가 존재 하는지 확인
+                    if (IsHnCInstalled            == true &&  // 한글이 설치 여부 확인
+                        IsRegCheckerModule        == true &&  // 체커 모듈이 등록 되어 있는지 확인
+                        IsExsistsExportHWPDir     == true &&  // Export 된곳에 HWP 폴더가 존재 하는지 확인
                         IsHwpToPdfConverterExsist == true)    // 바이러스 백신으로부터 제거가 될수 있는 요소로 모듈이 존재 하는지 체크
                     {
+                      
                         var TokenSource = new CancellationTokenSource();
                         CancellationToken Token = TokenSource.Token;
 
@@ -142,7 +140,7 @@ namespace DocToPdf.ViewModel
                             while (Token.IsCancellationRequested != true)
                             {
                                 IntPtr Producthwnd = User32APIService.FindWindow(null!, ProductName);
-                                IntPtr Hwphwnd = User32APIService.FindWindow(null!, "빈 문서 1 - 한글");
+                                IntPtr Hwphwnd     = User32APIService.FindWindow(null!, "빈 문서 1 - 한글");
 
                                 if (Hwphwnd != IntPtr.Zero && IsWindowForeground == false)
                                 {
@@ -179,9 +177,9 @@ namespace DocToPdf.ViewModel
 
                         }, Token);
 
-
+                                        
                         await ConvHncToDocService.ConvertHWPToPDFAll(ConvertProgressReport);
-
+                                          
                         ConvHncToDocService.Remove_gen_py();
 
                         TokenSource.Cancel();

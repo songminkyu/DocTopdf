@@ -5,6 +5,7 @@ using System.Windows.Xps.Packaging;
 using System.Windows.Interop;
 using System.Diagnostics;
 using System.Windows;
+using DocToPdf.UIControlServices;
 
 namespace DocToPdf.Services
 {
@@ -232,10 +233,6 @@ namespace DocToPdf.Services
         private static string Language = string.Empty;
         private static string SavePath = string.Empty;
 
-        private static void SetLanguage(string language) 
-        {
-            Language = language;
-        }
         public static void SetRootPath(string path)
         {
             RootPath = path;
@@ -524,15 +521,9 @@ namespace DocToPdf.Services
         }
         public static string LoadPath = string.Empty;
         private static ConvertReport ReportProgress = new ConvertReport();
-        private static IProgress<ConvertReport> ?IConvertProgressReport;
-        private static PresentationSource source;
+        private static IProgress<ConvertReport> ?IConvertProgressReport;        
         private static string RootPath = string.Empty;
-        private static string SavePath = string.Empty;
-        private static string Language = string.Empty;
-        private static void SetLanguage(string language)
-        {
-            Language = language;
-        }
+        private static string SavePath = string.Empty;        
         public static void SetRootPath(string path)
         {
             RootPath = path;
@@ -540,10 +531,6 @@ namespace DocToPdf.Services
         public static void SetSavePath(string path)
         {
             SavePath = path;
-        }
-        public static void SetParentHandle()
-        {
-            source = PresentationSource.FromVisual(Application.Current.MainWindow) as HwndSource;
         }
         public static async Task<bool> ConvertHWPToPDFAll(Progress<ConvertReport> ConvertProgressReport)
         {           
@@ -556,11 +543,7 @@ namespace DocToPdf.Services
                 };
 
                 IConvertProgressReport = ConvertProgressReport;
-
-                var hWnd_source = PresentationSource.FromVisual(Application.Current.MainWindow) as HwndSource;
-                var hwnd_wndproc_hook = new HwndSourceHook(HwpToPdfConvertWndProc);
-                hWnd_source!.AddHook(hwnd_wndproc_hook);
-                                     
+          
                 try
                 {
                     foreach (var ConvertType in ConvertTypes)
@@ -575,7 +558,7 @@ namespace DocToPdf.Services
                         ProcessStartInfo psi = new ProcessStartInfo
                         {
                             FileName = "\"" + HwpToPdffile + "\"",
-                            Arguments = $"-hrp \"{ExportHwpPath}\" -ps \"{SavePath}\" -phw \"{hWnd_source.Handle}\"",
+                            Arguments = $"-hrp \"{ExportHwpPath}\" -ps \"{SavePath}\"",
                             Verb = "runas",
                             UseShellExecute = false,
                             CreateNoWindow = true,
@@ -619,31 +602,11 @@ namespace DocToPdf.Services
                     return false;
                 }
                 
-                hWnd_source.RemoveHook(HwpToPdfConvertWndProc);
+               
 
                 return true;
             }).ConfigureAwait(false);
-        }
-        private static IntPtr HwpToPdfConvertWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {                       
-            if (msg == (int)WN_Message.ToConvertPdfStartCount)
-            {                
-                ReportProgress.CurrentCount = 0;
-                ReportProgress.TotalCount   = wParam.ToInt32();                
-            }
-            else if (msg == (int)WN_Message.ToConvertPdfMessage)
-            {
-                ReportProgress.CurrentCount = wParam.ToInt32();
-                ReportProgress.ConvertTarget = lParam.ToString();
-            }
-
-            if(IConvertProgressReport != null)
-            {
-                IConvertProgressReport.Report(ReportProgress);
-            }
-          
-            return IntPtr.Zero;
-        }
+        }      
         private static void HwpToPdfConvertExited()
         {
             if(ReportProgress != null)
@@ -662,19 +625,26 @@ namespace DocToPdf.Services
                 {
                     if (parsing[0] == "ToConvertPdfStartCount")
                     {
+                        ReportProgress.ConvertTarget = "Hwp(x) to Pdf Convert Start";
                         ReportProgress.CurrentCount = int.Parse(parsing[1]);
                         ReportProgress.TotalCount   = int.Parse(parsing[2]);
                     }
                     else
                     {
                         if(parsing.Count() > 1)
-                        {
-                            ReportProgress.CurrentCount = int.Parse(parsing[1]);
+                        {                            
+                            ReportProgress.CurrentCount  = int.Parse(parsing[1]);
+                            ReportProgress.ConvertTarget = parsing[2];
                         }
                     }
 
                     LoggingService.Logger($"{ReportProgress.ConvertType} to PDF Converting Exited :Converting Count " +
                         $"{ReportProgress.CurrentCount} / {ReportProgress.TotalCount} ", LogLevel.Info);
+
+                    if (IConvertProgressReport != null)
+                    {
+                        IConvertProgressReport.Report(ReportProgress);
+                    }
                 }
             }            
         }
@@ -684,47 +654,23 @@ namespace DocToPdf.Services
             string? PdfFilePath = "";
             int InsertOffset = 0;
             ContentType ConversionType = ContentType.HWP;
-            if (OrgFilePath.Contains("\\AppData\\Local\\Temp"))
+            if (ConvertType.Equals("HWPX", StringComparison.OrdinalIgnoreCase))
             {
                 InsertOffset = 5;
-                ConversionType = ContentType.Temp;
-            }            
+                ConversionType = ContentType.HWPX;
+            }
             else
             {
-                if (ConvertType.Equals("HWPX", StringComparison.OrdinalIgnoreCase))
-                {
-                    InsertOffset = 5;
-                    ConversionType = ContentType.HWPX;
-                }
-                else
-                {
-                    InsertOffset = 4;
-                    ConversionType = ContentType.HWP;
-                }              
+                InsertOffset = 4;
+                ConversionType = ContentType.HWP;
             }
-         
+
             try
-            {
-              
-                string? MakePDFSFilePath = OrgFilePath.Insert(OrgFilePath.LastIndexOf($"\\{ConversionType}\\") + InsertOffset, "\\PDFS");
-                string? MakePDFSDir      = Path.GetDirectoryName(MakePDFSFilePath);
+            {                          
                 string? ConvPdfFileName  = Path.ChangeExtension(OrgFilePath, ".pdf");
                 string? OnlyPdfFileName  = Path.GetFileName(ConvPdfFileName);
-
-                if (!Directory.Exists(MakePDFSDir))
-                {
-                    Directory.CreateDirectory(MakePDFSDir!);
-                }
-
-                PdfFilePath = Path.Combine(MakePDFSDir!, OnlyPdfFileName);
-
-                if (!File.Exists(PdfFilePath) && IsConvertErrorReport == true) // PDF가 파일이 존재 하지 않는지 한번더 체크
-                {
-                    if (Language == "Korean")
-                        PdfFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ConvertErrorReport", "NotPreview_KR.pdf");
-                    else
-                        PdfFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ConvertErrorReport", "NotPreview_EN.pdf");
-                }
+        
+                PdfFilePath = Path.Combine(SavePath!, OnlyPdfFileName);           
             }
             catch(Exception ex)
             {
@@ -964,7 +910,7 @@ namespace DocToPdf.Services
         {
             bool IsHwpToPdfConverterExsist = false;
 
-            string HwpToPdfConverter = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hwp_to_pdf.exe");
+            string HwpToPdfConverter = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "hnc_to_pdf.exe");
             if (File.Exists(HwpToPdfConverter) == true)
             {
                 IsHwpToPdfConverterExsist =  true;

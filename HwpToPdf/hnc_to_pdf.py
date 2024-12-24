@@ -1,4 +1,6 @@
 import os  # .path.join(), .listdir(), .chdir(), .getcwd() 등 사용
+import time
+
 import win32com.client as win32  # 한/글 열 수 있는 모듈
 import win32con
 import win32gui  # 창 숨기기 위한 모듈
@@ -36,7 +38,6 @@ if __name__ == "__main__":
                         default="c:\\Doc\\HWPX")
     parser.add_argument('-ps', '--pdf_save_path', type=str, help=' : Please specify the location of the PDF document',
                         default="c:\\Doc\\PDFS")
-    parser.add_argument('-phw','--parenthwnd',type=int,help=' : Please set Parent handle.',default=0)
     parser.add_argument('-scm','--security_module', type=str, help=' : Please specify the security module',default='FilePathCheckerModule')
     ToConvertPdfStartMessage = win32con.WM_USER + 1000
     ToConvertPdfMessage = win32con.WM_USER + 1001
@@ -73,8 +74,7 @@ if __name__ == "__main__":
 
     file_list_hwp = [file for file in file_list if file.endswith((".hwp",".HWP",".Hwp",".hwpx",".HWPX",".Hwpx"))]
 
-    if arguments.parenthwnd != 0:
-        win32api.SendMessage(arguments.parenthwnd, ToConvertPdfStartMessage, len(file_list_hwp), 0)
+    print("ToConvertPdfStartCount", 0, len(file_list_hwp), sep="|")
 
     '''
     변환 되지 않는 문서 (HWPX, 배포용 문서, 암호 걸린 문서)
@@ -106,9 +106,8 @@ if __name__ == "__main__":
                 # 컨버팅이 되지 않는 문서들 대상으로 다음 문서 변환 시도
                 continue
 
-            if arguments.parenthwnd != 0:
-                win32api.SendMessage(arguments.parenthwnd, ToConvertPdfMessage, ToConvertPdfCount, replace_hwp2pdf_path)
-                ToConvertPdfCount = ToConvertPdfCount + 1
+            print("ToConvertPdfCurrentCount", ToConvertPdfCount, replace_hwp2pdf_path, sep="|")
+            ToConvertPdfCount = ToConvertPdfCount + 1
 
     win32gui.ShowWindow(hwnd, 0)  # 다시 숨겼던 한/글 창을 보여주고,
     hwp.XHwpDocuments.Close(isDirty=False)  # 열려있는 문서가 있다면 닫아줘(저장할지 물어보지 말고)
